@@ -8,3 +8,6 @@ source venv/bin/activate
 
 #running streamlit
 streamlit run app.py
+
+# git 
+git push -u origin main
