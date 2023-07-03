@@ -3,9 +3,11 @@ import streamlit as st
 import pandas as pd
 import openai
 
+from creds import OPENAI_API_KEY
+
 
 # Set up OpenAI API credentials
-openai.api_key = "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"
+openai.api_key = OPENAI_API_KEY
 
 # Define the menu as a list of strings
 menu = [
