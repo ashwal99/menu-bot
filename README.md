@@ -1,4 +1,4 @@
-This is mozo bot
+This is Menu bot
 
 #requirements.txt
 pipreqs --encoding=utf8
@@ -6,7 +6,7 @@ pipreqs --encoding=utf8
 # venv
 source venv/bin/activate
 
-#running streamlit
+# running streamlit
 streamlit run app.py
 
 # git 
