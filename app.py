@@ -4,27 +4,15 @@ import pandas as pd
 import openai
 
 from creds import OPENAI_API_KEY
+from refined_query import generate_refined_query
+from restaurant_menu import restaurant_menu
 
 
 # Set up OpenAI API credentials
 openai.api_key = OPENAI_API_KEY
 
 # Define the menu as a list of strings
-menu = [
-    "Margherita : Classic pizza with tomato sauce and mozzarella cheese : Veg : Veg Pizza : #vegan, #chefSpecial",
-    "Pepperoni : Pizza with tomato sauce, mozzarella, and pepperoni : Non-veg : NV Pizza : #spicy, #recommended",
-    "Caesar Salad : Romaine lettuce, croutons, Parmesan cheese, Caesar dressing : Veg : Specialty : #dairyFree, #wantToRepeat",
-    "BBQ Chicken : Pizza with barbecue sauce, chicken, and onions : Non-veg : NV Pizza : #specialtyChicken, #mealFor2",
-    "Garlic Bread : Sliced baguette with garlic butter and Parmesan : Veg : Sides : #new, #sides",
-    "Chicken Alfredo : Fettuccine with creamy Alfredo sauce and chicken : Non-veg : Meals and combos : #containsDairy, #mealFor2",
-    "Vegan Burger : Plant-based burger patty with lettuce, tomato, and onion : Veg : Meals and combos : #guiltFree, #vegan, #mealFor2",
-    "Tandoori Chicken : Chicken marinated in Indian spices and grilled : Non-veg : Specialty : #spicy, #recommended, #new",
-    "Caprese Salad : Fresh mozzarella, tomato, and basil drizzled with balsamic : Veg : Specialty : #wantToRepeat, #dairyFree",
-    "Hawaiian Pizza : Pizza with tomato sauce, mozzarella, ham, and pineapple : Non-veg : NV Pizza : #new, #recommended",
-    "Margherita Extra : Margherita pizza with extra cheese and basil : Veg : Veg Pizza : #wantToRepeat",
-    "Buffalo Wings : Deep-fried chicken wings served with hot sauce and blue cheese : Non-veg : Sides : #spicy, #sides,#specialtyChicken, #new",
-    "Greek Salad : Lettuce, tomato, cucumber, feta cheese, and Kalamata olives : Veg : Specialty : #wantToRepeat, #dairyFree, #glutenFree"
-]
+menu = restaurant_menu
 
 # Create a DataFrame from the menu
 menu_data = []
@@ -34,8 +22,22 @@ for item in menu:
 menu_df = pd.DataFrame(menu_data, columns=["Item", "Description", "Type", "Category", "Tags"])
 
 # Initialize chat history
-chat_history = []
+chat_history = [{'role':'system', 'content':"""
+You are OrderBot, an automated service to collect orders for a pizza restaurant. \
+You first greet the customer, then collects the order, \
+and then asks if it's a pickup or delivery. \
+You wait to collect the entire order, then summarize it and check for a final \
+time if the customer wants to add anything else. \
+If it's a delivery, you ask for an address. \
+Finally you collect the payment.\
+Make sure to clarify all options, extras and sizes to uniquely \
+identify the item from the menu.\
+You respond in a short, very conversational friendly style. \
+"""}]
 
+chat_history.append({'role':'system', 'content':f'''The menu includes \
+{menu}
+'''})
 # Streamlit application layout
 st.title("Restaurant Waiter Chatbot")
 
@@ -86,13 +88,39 @@ st.markdown(
 
 # Function to handle user input
 def onClick():
+    # Generate refined query from chat history and latest query
+    refined_query = generate_refined_query(st.session_state.chat_history, st.session_state.input_message)
+
     # Add user input to chat history
     st.session_state.chat_history.append({"role": "user", "content": st.session_state.input_message})
+
+    # Initialise messages
+    messages = [{'role':'system', 'content':"""
+    You are OrderBot, an automated service to collect orders for a pizza restaurant. \
+    You first greet the customer, then collects the order, \
+    and then asks if it's a pickup or delivery. \
+    You wait to collect the entire order, then summarize it and check for a final \
+    time if the customer wants to add anything else. \
+    If it's a delivery, you ask for an address. \
+    Finally you collect the payment.\
+    Make sure to clarify all options, extras and sizes to uniquely \
+    identify the item from the menu.\
+    You respond in a short (max 20 words), very conversational friendly style. \
+    Dont talk about to many items at once. \
+    """}]
+
+    messages.append({'role':'system', 'content':f'''The menu includes \
+    {menu}
+    '''})
+
+    messages.append({"role": "user", "content": refined_query})
+
 
     # Generate response from GPT model
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=st.session_state.chat_history
+        max_tokens=50,
+        messages=messages
     )
 
     # Add model response to chat history
@@ -102,6 +130,10 @@ def onClick():
     num_tokens = response["usage"]["total_tokens"]
     st.sidebar.subheader("Tokens Used")
     st.sidebar.write(f"{num_tokens} tokens used by the OpenAI API.")
+
+    # Display the refined query in the sidebar
+    st.sidebar.subheader("Refined Query")
+    st.sidebar.write(refined_query)
 
 # Render chat history with scrolling
 chat_html = ""
