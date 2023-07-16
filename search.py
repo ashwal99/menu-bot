@@ -17,7 +17,7 @@ def semantic_search(query, threshold=0.3):
 
 
 def find_closest_sentences(query_embedding, threshold=0.3):
-    sentence_embeddings = np.load('menu-bot/embeddingsForMenu.npy')
+    sentence_embeddings = np.load('embeddingsForMenu.npy')
     # Calculate cosine similarity between query embedding and sentence embeddings
     similarity_scores = cosine_similarity(
         query_embedding.reshape(1, -1), sentence_embeddings)[0]
