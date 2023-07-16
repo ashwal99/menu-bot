@@ -2,6 +2,7 @@ import openai
 
 from creds import OPENAI_API_KEY
 
+
 def generate_refined_query(conversation, latest_query):
     # Set up OpenAI API credentials
     openai.api_key = OPENAI_API_KEY
@@ -15,13 +16,14 @@ def generate_refined_query(conversation, latest_query):
         engine='text-davinci-003',
         prompt=prompt,
         max_tokens=50,
-        temperature=1,
+        temperature=0,
         n=1,
         stop=None,
         echo=True
     )
 
     # Extract the refined query from the API response
-    refined_query = response.choices[0].text.strip().split('Refined Query:')[1].strip()
+    refined_query = response.choices[0].text.strip().split('Refined Query:')[
+        1].strip()
 
     return refined_query
