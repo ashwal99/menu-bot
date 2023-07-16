@@ -1,10 +1,10 @@
 import os
 from sentence_transformers import SentenceTransformer
 
-model_name = 'sentence-transformers/multi-qa-mpnet-base-dot-v1'
-model_path = 'menu-bot/ml_models/multi-qa-mpnet-base-dot-v1'
 
 def get_embedding_model():
+    model_name = 'sentence-transformers/multi-qa-mpnet-base-dot-v1'
+    model_path = 'menu-bot/ml_models/multi-qa-mpnet-base-dot-v1'
     if not os.path.exists(model_path):
         # Download the model only if it doesn't exist
         print("Downloading sentenceTransformer model....")
@@ -15,7 +15,6 @@ def get_embedding_model():
         # Load the model from the local file system
         print("Load sentenceTransformer model....")
         model = SentenceTransformer(model_path)
-    
     return model
 
 # if __name__ == "__main__":
