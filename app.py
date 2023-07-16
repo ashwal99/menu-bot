@@ -2,11 +2,9 @@
 import streamlit as st
 import pandas as pd
 import openai
-
 from creds import OPENAI_API_KEY
 from refined_query import generate_refined_query
 from restaurant_menu import restaurant_menu
-
 
 # Set up OpenAI API credentials
 openai.api_key = OPENAI_API_KEY
@@ -19,10 +17,11 @@ menu_data = []
 for item in menu:
     item_data = item.split(" : ")
     menu_data.append(item_data)
-menu_df = pd.DataFrame(menu_data, columns=["Item", "Description", "Type", "Category", "Tags"])
+menu_df = pd.DataFrame(menu_data, columns=[
+                       "Item", "Description", "Type", "Category", "Tags"])
 
 # Initialize chat history
-chat_history = [{'role':'system', 'content':"""
+chat_history = [{'role': 'system', 'content': """
 You are OrderBot, an automated service to collect orders for a pizza restaurant. \
 You first greet the customer, then collects the order, \
 and then asks if it's a pickup or delivery. \
@@ -35,7 +34,7 @@ identify the item from the menu.\
 You respond in a short, very conversational friendly style. \
 """}]
 
-chat_history.append({'role':'system', 'content':f'''The menu includes \
+chat_history.append({'role': 'system', 'content': f'''The menu includes \
 {menu}
 '''})
 # Streamlit application layout
@@ -87,15 +86,29 @@ st.markdown(
 )
 
 # Function to handle user input
+
+
 def onClick():
     # Generate refined query from chat history and latest query
-    refined_query = generate_refined_query(st.session_state.chat_history, st.session_state.input_message)
+    refined_query = generate_refined_query(
+        st.session_state.chat_history, st.session_state.input_message)
+
+    if refined_query is None:
+        exit()
+    else:
+        from ui_utils import render_refined_query_Info
+        render_refined_query_Info(refined_query)
+
+    from search import semantic_search
+    # do semantic search to fetch top k results
+    topKitems = semantic_search(refined_query)
 
     # Add user input to chat history
-    st.session_state.chat_history.append({"role": "user", "content": st.session_state.input_message})
+    st.session_state.chat_history.append(
+        {"role": "user", "content": st.session_state.input_message})
 
     # Initialise messages
-    messages = [{'role':'system', 'content':"""
+    messages = [{'role': 'system', 'content': """
     You are OrderBot, an automated service to collect orders for a pizza restaurant. \
     You first greet the customer, then collects the order, \
     and then asks if it's a pickup or delivery. \
@@ -109,31 +122,28 @@ def onClick():
     Dont talk about to many items at once. \
     """}]
 
-    messages.append({'role':'system', 'content':f'''The menu includes \
-    {menu}
+    messages.append({'role': 'system', 'content': f'''The menu includes \
+    {topKitems}
     '''})
 
     messages.append({"role": "user", "content": refined_query})
 
-
     # Generate response from GPT model
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        max_tokens=50,
+        max_tokens=70,
         messages=messages
     )
 
     # Add model response to chat history
-    st.session_state.chat_history.append({"role": "assistant", "content": response['choices'][0]['message']['content']})
+    st.session_state.chat_history.append(
+        {"role": "assistant", "content": response['choices'][0]['message']['content']})
 
     # Calculate and display the number of tokens used
     num_tokens = response["usage"]["total_tokens"]
     st.sidebar.subheader("Tokens Used")
     st.sidebar.write(f"{num_tokens} tokens used by the OpenAI API.")
 
-    # Display the refined query in the sidebar
-    st.sidebar.subheader("Refined Query")
-    st.sidebar.write(refined_query)
 
 # Render chat history with scrolling
 chat_html = ""
