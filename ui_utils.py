@@ -1,6 +1,6 @@
 import streamlit as st
 
 
-def render_refined_query_Info(refined_query):
-    st.sidebar.subheader("Refined Query")
+def render_Info(msg, refined_query):
+    st.sidebar.subheader(msg)
     st.sidebar.write(refined_query)

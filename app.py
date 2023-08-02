@@ -89,6 +89,11 @@ st.markdown(
 
 
 def onClick():
+    # Make an API call to the service
+    from ml_model_service import getFlaskServiceData
+    flaskAPIResponse = getFlaskServiceData()
+    from ui_utils import render_Info
+    render_Info("API call to service", flaskAPIResponse)
     # Generate refined query from chat history and latest query
     refined_query = generate_refined_query(
         st.session_state.chat_history, st.session_state.input_message)
@@ -96,12 +101,16 @@ def onClick():
     if refined_query is None:
         exit()
     else:
-        from ui_utils import render_refined_query_Info
-        render_refined_query_Info(refined_query)
+        render_Info("refined_query:", refined_query)
 
-    from search import semantic_search
+    # from search import semantic_search
     # do semantic search to fetch top k results
-    topKitems = semantic_search(refined_query)
+    # Make an API call to the service
+    from ml_model_service import getTopKRelavantItemsData
+    topKitems = getTopKRelavantItemsData(refined_query)
+    from ui_utils import render_Info
+    render_Info("API call to service", topKitems)
+    # topKitems = semantic_search(refined_query)
 
     # Add user input to chat history
     st.session_state.chat_history.append(
@@ -122,7 +131,7 @@ def onClick():
     Dont talk about to many items at once. \
     """}]
 
-    messages.append({'role': 'system', 'content': f'''The menu includes \
+    messages.append({'role': 'system', 'content': f'''The menu includes items with their respective confidence scores \
     {topKitems}
     '''})
 
