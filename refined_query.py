@@ -15,7 +15,7 @@ def generate_refined_query(conversation, latest_query):
     response = openai.Completion.create(
         engine='text-davinci-003',
         prompt=prompt,
-        max_tokens=50,
+        max_tokens=70,
         temperature=0,
         n=1,
         stop=None,

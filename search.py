@@ -1,5 +1,4 @@
 from sklearn.metrics.pairwise import cosine_similarity
-from build_embedding_model import get_embedding_model
 import numpy as np
 from restaurant_menu import restaurant_menu
 
@@ -8,9 +7,8 @@ def semantic_search(query, threshold=0.3):
     if query == '':
         return
     # find the embeddings for the query
-    embedding_model = get_embedding_model()
-    query_embedding = embedding_model.encode(
-        query, batch_size=10)
+    from build_embedding_model import get_embeddings
+    query_embedding = np.array(get_embeddings([query]))
 
     # find the similar items for the query
     return find_closest_sentences(query_embedding, threshold)
@@ -19,8 +17,10 @@ def semantic_search(query, threshold=0.3):
 def find_closest_sentences(query_embedding, threshold=0.3):
     sentence_embeddings = np.load('embeddingsForMenu.npy')
     # Calculate cosine similarity between query embedding and sentence embeddings
+    query_embedding = query_embedding.reshape(1, -1)
+    sentence_embeddings = sentence_embeddings.reshape(1, -1)
     similarity_scores = cosine_similarity(
-        query_embedding.reshape(1, -1), sentence_embeddings)[0]
+        query_embedding, sentence_embeddings)[0]
 
     # Find the indices of closest sentences based on similarity scores
     closest_indices = np.argsort(similarity_scores)[::-1]
