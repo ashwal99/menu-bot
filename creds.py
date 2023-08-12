@@ -1,2 +1,2 @@
-
-OPENAI_API_KEY = "sk-Gsrxzaq5mXEE4kCDEmfP" + "T3BlbkFJ9x8BbUjrg1ORNUUiW2IZ"
+# Jash's Key
+OPENAI_API_KEY = "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"
