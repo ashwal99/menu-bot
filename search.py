@@ -1,6 +1,7 @@
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from restaurant_menu import restaurant_menu
+import pickle
 
 
 def semantic_search(query, threshold=0.3):
@@ -8,35 +9,35 @@ def semantic_search(query, threshold=0.3):
         return
     # find the embeddings for the query
     from build_embedding_model import get_embeddings
-    query_embedding = np.array(get_embeddings([query]))
+    query_embedding = np.array(get_embeddings(query))
 
     # find the similar items for the query
     return find_closest_sentences(query_embedding, threshold)
 
 
 def find_closest_sentences(query_embedding, threshold=0.3):
-    sentence_embeddings = np.load('embeddingsForMenu.npy')
-    # Calculate cosine similarity between query embedding and sentence embeddings
-    query_embedding = query_embedding.reshape(1, -1)
-    sentence_embeddings = sentence_embeddings.reshape(1, -1)
-    similarity_scores = cosine_similarity(
-        query_embedding, sentence_embeddings)[0]
+    # Load the embeddings dictionary using pickle
+    with open('embeddings.pkl', 'rb') as f:
+        embeddings_dict = pickle.load(f)
 
-    # Find the indices of closest sentences based on similarity scores
-    closest_indices = np.argsort(similarity_scores)[::-1]
+    # Calculate cosine similarity between the query embedding and all embeddings
+    similarities = {}
+    for item, emb in embeddings_dict.items():
+        similarity = cosine_similarity([emb], [query_embedding])[0][0]
+        similarities[item] = similarity
 
-    # Get the closest sentences and their similarity scores
-    closest_sentences = [restaurant_menu[idx] for idx in closest_indices]
-    similarity_scores = similarity_scores[closest_indices]
-    # print('-----------------------------------------------')
-    # Display the closest sentences and their similarity scores
+    # Sort similarities in descending order
+    sorted_similarities = sorted(
+        similarities.items(), key=lambda x: x[1], reverse=True)
+
+    # Retrieve the top 5 closest menu items and their similarity scores
+    top_5_closest = sorted_similarities[:5]
+    # Store the top 5 items and their similarity scores in an array
     result_items_with_score = []
-    for sentence, score in zip(closest_sentences, similarity_scores):
-        # print(f"Sentence: {sentence}\nCosine Similarity: {score}\n")
-        if score >= threshold:
-            result_items_with_score.append((sentence, score))
+    for item, similarity in top_5_closest:
+        # print(item, " - Similarity:", similarity)
+        result_items_with_score.append((item, similarity))
 
-    # print(result_items_with_score)
     return result_items_with_score
 
 

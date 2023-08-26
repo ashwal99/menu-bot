@@ -20,6 +20,6 @@ from creds import OPENAI_API_KEY
 # if __name__ == "__main__":
 #     print(create_embedding_model())
 
-def get_embeddings(textStringsArray: [str], model="text-embedding-ada-002"):
+def get_embeddings(textStringsArray: str, model="text-embedding-ada-002"):
     openai.api_key = OPENAI_API_KEY
-    return openai.Embedding.create(input=textStringsArray, model=model)["data"][0]["embedding"]
+    return openai.Embedding.create(input=[textStringsArray], model=model)["data"][0]["embedding"]
