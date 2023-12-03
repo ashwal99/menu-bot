@@ -13,7 +13,7 @@ def generate_refined_query(conversation, latest_query):
 
     # Generate the refined query using the Language Model
     response = openai.Completion.create(
-        engine='text-davinci-003',
+        engine='gpt-3.5-turbo-instruct',
         prompt=prompt,
         max_tokens=70,
         temperature=0,

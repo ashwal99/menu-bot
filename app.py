@@ -134,7 +134,7 @@ def onClick():
 
     # Generate response from GPT model
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-3.5-turbo-1106",
         max_tokens=70,
         messages=messages
     )
